@@ -1,15 +1,71 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  workspaces Workspace[]
+  tasks     Task[]    @relation("AssignedTasks")
+  comments  Comment[]
+}
+
+model Workspace {
+  id        String    @id @default(uuid())
+  name      String
+  owner     User      @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  projects  Project[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  columns     Column[]
+  createdAt   DateTime  @default(now())
+}
+
+model Column {
+  id        String   @id @default(uuid())
+  name      String
+  order     Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  tasks     Task[]
+}
+
+model Task {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  dueDate      DateTime?
+  priority     String?
+  order        Int
+  column       Column   @relation(fields: [columnId], references: [id])
+  columnId     String
+  assignedTo   User?    @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  assignedToId String?
+  comments     Comment[]
+  createdAt    DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  text      String
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
 }
