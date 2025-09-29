@@ -23,6 +23,7 @@ model Workspace {
   name      String
   owner     User      @relation(fields: [ownerId], references: [id])
   ownerId   String
+  slug      String   @unique
   projects  Project[]
   createdAt DateTime  @default(now())
 }
